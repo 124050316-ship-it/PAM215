@@ -1,0 +1,11 @@
+function simularPeticionAPI() {
+    return new Promise(resolve =>{
+        setTimeout(() => {
+            resolve("Datos rescibidos corectamente");
+        }, 5000);
+    });
+}
+
+async function obtenerDatos(){
+    
+}
