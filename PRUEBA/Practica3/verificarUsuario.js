@@ -1,5 +1,5 @@
 function verificarUsuario(usuario) {
-    return new Promise(resolve, reject =>{
+    return new Promise((resolve, reject) =>{
         if (usuario === "admin") {
             resolve("Acceso consedido");
         } else {
@@ -9,7 +9,7 @@ function verificarUsuario(usuario) {
 }
 
 verificarUsuario("admin")
-.then(resizeBy => console.log(res))
+.then(res => console.log(res))
 .catch(err => console.error(err));
 
 verificarUsuario("Ivan")
