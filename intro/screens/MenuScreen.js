@@ -24,39 +24,54 @@ export default function MenuScreen() {
             return <BotonesScreen/>;
         case 'TextInput':
             return <TextInputScreen/>;
-        case 'Image':
+        case 'image': // Cambiado para coincidir con el botón
             return <ImageBackgroundScreen/>;
-        case 'Slapsh':
+        case 'slapsh': // Cambiado para coincidir con el botón
             return <SlapshScreen/>;
-        case 'ScrollView':
+        case 'scroll': // Cambiado para coincidir con el botón
             return <ScrollViewScreen/>;
-        case 'ActivityIndicatorScreen':
+        case 'activity': // Cambiado para coincidir con el botón
             return <ActivityIndicatorScreen/>;
-        case 'FlatListScreen':
+        case 'Flat': // Cambiado para coincidir con el botón
             return <FlatListScreen/>;
-        case 'ModalScreen':
+        case 'modal': // Cambiado para coincidir con el botón
             return <ModalScreen/>;
-        case 'BottomScreen':
+        case 'bottom': // Cambiado para coincidir con el botón
             return <BottomScreen/>;
         case 'menu':
         default:
             return (
-                <View>
+                <View style={styles.container}>
+                    <view style={styles.contenedorBotones}>
                     <Text> Menu de practicas </Text>
-                    <Button onPress={()=>setScreen('contador')} title='Pract:Contador'/> 
-                    <Button onPress={()=>setScreen('botones')} title='Pract:Buttons'/>
-                    <Button onPress={()=>setScreen('TextInput')} title='Pract:TextInput'/>
-                    <Button onPress={()=>setScreen('Image')} title='Pract:ImageBackgorund'/>
-                    <Button onPress={()=>setScreen('Slapsh')} title='Pract:Slapsh'/>
-                    <Button onPress={()=>setScreen('ScrollView')} title='Pract:ScrollView'/>
-                    <Button onPress={()=>setScreen('ActivityIndicatorScreen')} title='Pract:ActivityIndicator'/>
-                    <Button onPress={()=>setScreen('FlatListScreen')} title='Pract:FlatList'/>
-                    <Button onPress={()=>setScreen('ModalScreen')} title='Pract:Modal'/>
-                    <Button onPress={()=>setScreen('BottomScreen')} title='Pract:Bottom'/>
+                    <Button color="blue" onPress={()=>setScreen('contador')} title='Pract:Contador'/> 
+                    <Button color="blue" onPress={()=>setScreen('botones')} title='Pract:Buttons'/>
+                    <Button color="blue" onPress={()=>setScreen('TextInput')} title='Pract:TextInput'/>
+                    <Button color="blue" onPress={()=>setScreen('image')} title='Pract:ImageBackgorund'/>
+                    <Button color="blue" onPress={()=>setScreen('slapsh')} title='Pract:Slapsh'/>
+                    <Button color="blue" onPress={()=>setScreen('scroll')} title='Pract:ScrollView'/>
+                    <Button color="blue" onPress={()=>setScreen('activity')} title='Pract:ActivityIndicator'/>
+                    <Button color="blue" onPress={()=>setScreen('Flat')} title='Pract:FlatList'/>
+                    <Button color="blue" onPress={()=>setScreen('modal')} title='Pract:Modal'/>
+                    <Button color="blue" onPress={()=>setScreen('bottom')} title='Pract:Bottom'/>
+                </view>
                 </View>
             )
     }
   
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+    container: {
+    flex: 1,
+    backgroundColor: '#020202ff',
+    alignItems: 'center', // en el eje x
+    justifyContent: 'center', // en ele eje y
+    },
+    contenedorBotones:{
+    marginTop:20,
+    flexDirection:"column",
+    gap:20, 
+  },
+
+})
