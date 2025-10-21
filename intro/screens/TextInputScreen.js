@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
     titulo: {
-        fontFamyly: 'Times New Roman',
+        fontFamily: 'Times New Roman',
         fontSize: 32,
         color: '#000000ff',
         fontWeight: 'bold',
@@ -79,11 +79,11 @@ const styles = StyleSheet.create({
     },
     etiquetas: {
         fontSize: 16,
-        merginBottom: 5,
+        marginBottom: 5,
         marginTop: 10,
     },
     input:{
-        with: '50%', // ocupa el ancho disponible
+        width: '50%', // ocupa el ancho disponible
         borderWidth: 2, // Grosor del borde
         borderColor: '#39df8cff', // color del borde
         padding: 10, // espacio interno dentro del input
