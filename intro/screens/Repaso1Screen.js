@@ -1,66 +1,38 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, View, ImageBackground, TextInput, Switch, TouchableOpacity,Alert} from 'react-native';
-
-
+import { Text, StyleSheet, View, ImageBackground, TextInput, Switch, TouchableOpacity, Alert } from 'react-native';
 
 export default function Repaso1Screen() {
     const [nombre, setNombre] = useState('');
     const [email, setEmail] = useState('');
     const [aceptaTerminos, setAceptaTerminos] = useState(false);
 
-    const validarYRegistrar = () => {
-        console.log('Validando datos...'); 
+    const showMessage = (title, message) => {
         
-        
-        if (!nombre.trim() || !email.trim()) {
-            Alert.alert(
-                'Error',
-                'Por favor completa todos los campos',
-                [{ text: 'Entendido' }]
-            );
-             Alert(
-                'Error',
-                'Por favor completa todos los campos',
-                [{ text: 'Entendido' }]
-            );
-            return;
-        }
-        
-        
-        if (!aceptaTerminos) {
-            Alert.alert(
-                'Error',
-                'Debes aceptar los términos y condiciones',
-                [{ text: 'Entendido' }]
-            );
-            Alert(
-                'Error',
-                'Debes aceptar los términos y condiciones',
-                [{ text: 'Entendido' }]
-            );
-            return;
-        }
-
-        
-        Alert.alert(
-            '¡Registro Exitoso!',
-            `Se han registrado los siguientes datos:\n\nNombre: ${nombre}\nEmail: ${email}`,
-            [
-                { 
-                    text: 'OK',
-                    onPress: () => {
-                        console.log('Registro completado');
-                        
-                        setNombre('');
-                        setEmail('');
-                        setAceptaTerminos(false);
-                    }
-                }
-            ]
-        );
+        Alert.alert(title, message, [{ text: 'OK' }]);
     };
 
-return (
+    const validarYRegistrar = () => {
+        console.log('Validando datos...');
+
+        if (!nombre.trim() || !email.trim()) {
+            showMessage('Error', 'Por favor completa todos los campos');
+            return;
+        }
+
+        if (!aceptaTerminos) {
+            showMessage('Error', 'Debes aceptar los términos y condiciones');
+            return;
+        }
+
+        showMessage('¡Registro Exitoso!', `Se han registrado los siguientes datos:\n\nNombre: ${nombre}\nEmail: ${email}`);
+
+        
+        setNombre('');
+        setEmail('');
+        setAceptaTerminos(false);
+    };
+
+    return (
         <ImageBackground
             source={require('../assets/FondoPlaya.jpeg')}
             resizeMode='cover'
@@ -75,7 +47,7 @@ return (
                         value={nombre}
                         onChangeText={setNombre}
                     />
-                    
+
                     <TextInput
                         style={styles.input}
                         placeholder="Correo electrónico"
@@ -85,7 +57,7 @@ return (
                         keyboardType="email-address"
                         autoCapitalize="none"
                     />
-                    
+
                     <View style={styles.terminosContainer}>
                         <Switch
                             value={aceptaTerminos}
@@ -108,7 +80,7 @@ return (
             </View>
         </ImageBackground>
     );
-};
+}
 
 const styles = StyleSheet.create({
     background: {
@@ -121,17 +93,20 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 20,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        backgroundColor: 'rgba(0,0,0,0.4)',
     },
     inputContainer: {
         width: '100%',
         maxWidth: 400,
         alignItems: 'center',
+        padding: 10,
+        backgroundColor: 'rgba(255,255,255,0.05)',
+        borderRadius: 12,
     },
     input: {
         width: '100%',
         height: 50,
-        backgroundColor: 'rgba(255,255,255,0.9)',
+        backgroundColor: 'rgba(255,255,255,0.95)',
         borderRadius: 10,
         marginBottom: 15,
         paddingHorizontal: 15,
