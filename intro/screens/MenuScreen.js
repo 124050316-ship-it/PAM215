@@ -10,6 +10,7 @@ import ActivityIndicatorScreen from './ActivityIndicatorScreen';
 import FlatListScreen from './FlatListScreen';
 import ModalScreen from './ModalScreen';
 import BottomScreen from './BottomScreen';
+import Repaso1Screen from './Repaso1Screen';
 
 
 
@@ -24,25 +25,27 @@ export default function MenuScreen() {
             return <BotonesScreen/>;
         case 'TextInput':
             return <TextInputScreen/>;
-        case 'image': // Cambiado para coincidir con el botón
+        case 'image': 
             return <ImageBackgroundScreen/>;
-        case 'slapsh': // Cambiado para coincidir con el botón
+        case 'slapsh': 
             return <SlapshScreen/>;
-        case 'scroll': // Cambiado para coincidir con el botón
+        case 'scroll': 
             return <ScrollViewScreen/>;
-        case 'activity': // Cambiado para coincidir con el botón
+        case 'activity': 
             return <ActivityIndicatorScreen/>;
-        case 'Flat': // Cambiado para coincidir con el botón
+        case 'Flat': 
             return <FlatListScreen/>;
-        case 'modal': // Cambiado para coincidir con el botón
+        case 'modal': 
             return <ModalScreen/>;
-        case 'bottom': // Cambiado para coincidir con el botón
+        case 'bottom': 
             return <BottomScreen/>;
+        case 'Repaso1':
+            return <Repaso1Screen/>;
         case 'menu':
         default:
             return (
                 <View style={styles.container}>
-                    <view style={styles.contenedorBotones}>
+                    <View style={styles.contenedorBotones}>
                     <Text> Menu de practicas </Text>
                     <Button color="blue" onPress={()=>setScreen('contador')} title='Pract:Contador'/> 
                     <Button color="blue" onPress={()=>setScreen('botones')} title='Pract:Buttons'/>
@@ -54,7 +57,8 @@ export default function MenuScreen() {
                     <Button color="blue" onPress={()=>setScreen('Flat')} title='Pract:FlatList'/>
                     <Button color="blue" onPress={()=>setScreen('modal')} title='Pract:Modal'/>
                     <Button color="blue" onPress={()=>setScreen('bottom')} title='Pract:Bottom'/>
-                </view>
+                    <Button color="blue" onPress={()=>setScreen('Repaso1')} title='Pract:Repaso1'/>
+                </View>
                 </View>
             )
     }
