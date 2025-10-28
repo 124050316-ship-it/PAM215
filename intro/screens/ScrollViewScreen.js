@@ -10,7 +10,7 @@ export default function ScrollViewScreen() {
 
 
     return (
-        <ScrollView 
+        <ScrollView ref={scrollRef}
         style={styles.container}
         contentContainerStyle={styles.content}
         showsHorizontalScrollIndicator={true}
@@ -19,6 +19,14 @@ export default function ScrollViewScreen() {
 
             <Text style={styles.Titulo}>Practica: ScrollView</Text>
             <Text style={styles.Titulo2}>Ejemplo de desplazamiento vertical</Text>
+
+            <View>
+            <Button
+            color='#841584'
+            title='Ir al final'
+            onPress={irAlFinal}
+           ></Button>
+            </View>
 
             <View style={styles.elementos}>
                 <Text style={styles.text}>Elemento 1</Text>
