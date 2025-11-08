@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Buttom, ImageBackground, ScrollView } from 'react-native';
+import {useRef} from 'react-native';
 
 export default function App() {
 
@@ -10,19 +11,30 @@ export default function App() {
 
   return (
       <ScrollView ref={scroollRef} style={styles.container} contentContainerStyle={styles.content}showsVerticalScrollIndicator={true}>
-        <Text>Gestion de tareas</Text>
+        <ImageBackground source={require('../assets/Trabajo.jpg')}
+        resizeMode='cover'
+          style={styles.background}>
+          <Text>Bienvenido a Gestion de tareas</Text>
+        </ImageBackground>
       <View>
         <Buttom  color='blue' title='Ir al final' onPress={irALFinal}/>
       </View>
       <StatusBar style="auto" />
     <View style={styles.elemento}>
-      <Text style={styles.texto}></Text>
+      <Text style={styles.texto}>Trabajo</Text>
+      <Text style={styles.texto}>7/11/2025</Text>
     </View>
     <View style={styles.elemento}>
-      <Text style={styles.texto}></Text> 
+      <Text style={styles.texto}>Personal</Text>
+      <Text style={styles.texto}>7/11/2025</Text> 
     </View>
     <View style={styles.elemento}>
-      <Text style={styles.texto}></Text>
+      <Text style={styles.texto}>Estudios</Text>
+      <Text style={styles.texto}>7/11/2025</Text>
+    </View>
+    <View style={styles.elemento}>
+      <Text style={styles.texto}>Hogar</Text>
+      <Text style={styles.texto}>7/11/2025</Text>
     </View>
     </ScrollView>
   );
@@ -59,5 +71,10 @@ const styles = StyleSheet.create({
     color:'#fcfcfcff',
     fontWeight:'900',
     textDecorationLine:'underline'
+  },
+  background:{
+    flex: 1,
+    width: '100%',
+    height:'100%',
   },
 });
