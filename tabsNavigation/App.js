@@ -1,12 +1,34 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack'; 
 import { Ionicons } from '@expo/vector-icons';
 
-import Home from './screens/home';
-import Profile from './screens/profile';
-import Settings from './screens/settings';
+
+import Home from './screens/home.js';
+import ProfileScreen from './screens/profile.js'; 
+import Settings from './screens/settings.js';
+import Detail from './screens/Detail.js'; 
 
 const Tab = createBottomTabNavigator();
+const ProfileStack = createNativeStackNavigator(); 
+
+
+function ProfileStackScreen() {
+  return (
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerShown: false, 
+      }}
+    >
+      
+      <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
+      
+    
+      <ProfileStack.Screen name="Detail" component={Detail} /> 
+    </ProfileStack.Navigator>
+  );
+}
+
 
 export default function App() {
   return (
@@ -19,11 +41,11 @@ export default function App() {
             let iconName;
 
             if (route.name === 'Home') {
-              iconName = 'home';
+              iconName = 'home-outline';
             } else if (route.name === 'Profile') {
-              iconName = 'person';
+              iconName = 'person-outline';
             } else if (route.name === 'Settings') {
-              iconName = 'settings';
+              iconName = 'settings-outline';
             }
 
             return <Ionicons name={iconName} size={size} color={color} />;
@@ -37,8 +59,10 @@ export default function App() {
         })}
       >
         <Tab.Screen name="Home" component={Home} />
-        <Tab.Screen name="Profile" component={Profile} />
-        <Tab.Screen name="Settings" component={Settings} />
+        
+        <Tab.Screen name="Profile" component={ProfileStackScreen} /> 
+        
+        <Tab.Screen name="settings" component={Settings} />
       </Tab.Navigator>
     </NavigationContainer>
   );
