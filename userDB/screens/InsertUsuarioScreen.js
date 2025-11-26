@@ -10,7 +10,8 @@ export default function UsuarioView() {
   const [nombre, setNombre] = useState('');
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
-
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentUserId, serCurrentUserId] = useState(null);
   
   const cargarUsuarios = useCallback(async () => {
     try {
@@ -43,21 +44,59 @@ export default function UsuarioView() {
 
   
   const handleAgregar = async () => {
-    if (guardando) return; 
+    if (guardando || nombre.trim().length === 0) return; 
     
     try {
       setGuardando(true);
-      const usuarioCreado = await controller.crearUsuario(nombre);
-      Alert.alert(
-        'Usuario Creado',
-        `"${usuarioCreado.nombre}" guardado con ID: ${usuarioCreado.id}`
-      );
+      if (isEditing && currentUserId) {
+        await controller.actualizarUsuario(currentUserId, nombre);
+        Alert.alert('Éxito', `Usuario con ID ${currentUserId} actualizado.`);
+        setIsEditing(false);
+        setCurrentUserId(null);
+      } else {
+        const usuarioCreado = await controller.crearUsuario(nombre);
+        Alert.alert(
+          'Usuario Creado',
+          `"${usuarioCreado.nombre}" guardado con ID: ${usuarioCreado.id}`
+        );
+      }
       setNombre(''); 
     } catch (error) {
       Alert.alert('Error', error.message);
     } finally {
       setGuardando(false);
     }
+  };
+
+  const handleEdit = (usuario) => {
+    setIsEditing(true);
+    setCurrentUserId(usuario.id);
+    setNombre(usuario.nombre);
+  };
+
+  const handleDelete = (id, nombre) => {
+    Alert.alert(
+      'Confirmar Eliminación',
+      `¿Estás seguro de que quieres eliminar a "${nombre}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true); 
+              await controller.eliminarUsuario(id);
+              Alert.alert('Éxito', `Usuario "${nombre}" eliminado correctamente.`);
+            } catch (error) {
+              Alert.alert('Error', error.message);
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
   };
 
   
@@ -77,6 +116,24 @@ export default function UsuarioView() {
           })}
         </Text>
       </View>
+      
+      {/* ---> [NUEVOS BOTONES DE ACCIÓN] <--- */}
+      <View style={styles.actions}>
+        <TouchableOpacity 
+          style={styles.editButton}
+          onPress={() => handleEdit(item)}
+        >
+          <Text style={styles.actionText}>Editar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.deleteButton}
+          onPress={() => handleDelete(item.id, item.nombre)}
+        >
+          <Text style={styles.actionText}>Eliminar</Text>
+        </TouchableOpacity>
+      </View>
+      {/* ------------------------------------- */}
+      
     </View>
   );
     return (
@@ -109,7 +166,11 @@ export default function UsuarioView() {
           disabled={guardando || nombre.trim().length === 0} >
 
           <Text style={styles.buttonText}>
-            {guardando ? ' Guardando...' : 'Agregar Usuario'}
+            {guardando 
+                ? ' Procesando...' 
+                : isEditing 
+                    ? 'Guardar Cambios' 
+                    : 'Agregar Usuario'} 
           </Text>
         </TouchableOpacity>
       </View>
@@ -337,5 +398,26 @@ const styles = StyleSheet.create({
   bold: {
     fontWeight: 'bold',
     color: '#1976D2',
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  editButton: {
+    backgroundColor: '#ffc107',
+    padding: 8,
+    borderRadius: 5,
+    marginLeft: 10,
+  },
+  deleteButton: {
+    backgroundColor: '#dc3545', 
+    padding: 8,
+    borderRadius: 5,
+    marginLeft: 10,
+  },
+  actionText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });

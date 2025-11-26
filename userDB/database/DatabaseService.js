@@ -55,6 +55,33 @@ class DatabaseService {
       };
     }
   }
+  async actualizarUsuario(id, nombre) {
+    try {
+      Usuario.validar(nombre);
+
+      const result = await DatabaseService.update(id, nombre.trim());
+
+      this.notifyListeners();
+      return result;
+    } catch(error){
+      console.error('Error al actualizar usuario', error);
+      throw error;
+    }
+  }
+
+  async eliminarUsuario(id){
+    try {
+      const result = await DatabaseService.remove(id);
+
+
+      this.notifyListeners();
+
+      return result;
+    } catch (error){
+      console.error('Error al eliminar usuario: ', error)
+      throw error;
+    }
+  }
 }
 
 // Exportar instancia de la clase
