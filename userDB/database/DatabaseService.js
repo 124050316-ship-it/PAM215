@@ -133,7 +133,8 @@ class DatabaseService {
   async add(nombre) {
     if (Platform.OS === 'web') {
       const usuarios = await this.getAll();
-      const nuevoUsuario = { id: Date.now(), nombre, fecha_creacion: new Date().toISOString() };
+      const nextId = usuarios.length === 0 ? 1 : Math.max(...usuarios.map(u => Number(u.id))) + 1;
+      const nuevoUsuario = { id: nextId, nombre, fecha_creacion: new Date().toISOString() };
       usuarios.unshift(nuevoUsuario);
       localStorage.setItem(this.storageKey, JSON.stringify(usuarios));
       return nuevoUsuario;
@@ -141,18 +142,38 @@ class DatabaseService {
 
     await this.ensureDB();
     if (this.useMemoryFallback) {
-      const nuevo = { id: Date.now(), nombre, fecha_creacion: new Date().toISOString() };
+      const nextId = this._memoryUsers.length === 0 ? 1 : Math.max(...this._memoryUsers.map(u => Number(u.id))) + 1;
+      const nuevo = { id: nextId, nombre, fecha_creacion: new Date().toISOString() };
       this._memoryUsers.push(nuevo);
       return nuevo;
     }
     if (!this.db) throw new Error('Database not initialized (add)');
-
+    // For sqlite try to use insertId; if not available, compute next id via MAX(id)
     return await new Promise((resolve, reject) => {
       this.db.transaction((tx) => {
         tx.executeSql(
           'INSERT INTO usuarios (nombre) VALUES(?)',
           [nombre],
-          (_, result) => resolve({ id: result.insertId ?? null, nombre, fecha_creacion: new Date().toISOString() }),
+          async (_, result) => {
+            try {
+              let id = null;
+              if (result && (result.insertId || result.insertId === 0)) {
+                id = result.insertId;
+              }
+              if (id == null) {
+                // fallback: query max(id)
+                tx.executeSql('SELECT MAX(id) as maxId FROM usuarios', [], (_, r2) => {
+                  const maxId = r2.rows._array && r2.rows._array[0] && r2.rows._array[0].maxId;
+                  const next = (maxId == null) ? 1 : Number(maxId);
+                  resolve({ id: next, nombre, fecha_creacion: new Date().toISOString() });
+                }, (_, err) => reject(err));
+              } else {
+                resolve({ id, nombre, fecha_creacion: new Date().toISOString() });
+              }
+            } catch (err) {
+              reject(err);
+            }
+          },
           (_, err) => reject(err)
         );
       }, reject);
