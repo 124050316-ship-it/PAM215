@@ -11,7 +11,6 @@ class DatabaseService {
     this._initializing = false;
   }
 
-  // Ensure the DB is initialized. If not, call initialize() which creates the table.
   async ensureDB() {
     if (Platform.OS === 'web') return;
     if (this.db) return;
@@ -35,12 +34,10 @@ class DatabaseService {
 
     this._initializing = true;
     console.log('[DatabaseService] initialize — sqlite');
-    // Prefer synchronous openDatabase, otherwise await async variant if available
     try {
       if (SQLite && typeof SQLite.openDatabase === 'function') {
         this.db = SQLite.openDatabase('miapp.db');
       } else if (SQLite && typeof SQLite.openDatabaseAsync === 'function') {
-        // some environments expose an async opener
         this.db = await SQLite.openDatabaseAsync('miapp.db');
       } else if (SQLite && SQLite.default && typeof SQLite.default.openDatabase === 'function') {
         this.db = SQLite.default.openDatabase('miapp.db');
@@ -60,7 +57,6 @@ class DatabaseService {
       return;
     }
 
-    // If opener returned a Promise (unexpected), await it
     if (this.db && typeof this.db.then === 'function') {
       try {
         this.db = await this.db;
@@ -74,7 +70,6 @@ class DatabaseService {
       }
     }
 
-    // Validate the db object has transaction
     if (!this.db || typeof this.db.transaction !== 'function') {
       console.warn('[DatabaseService] opened db does not expose transaction. Falling back to in-memory. DB:', this.db);
       this.useMemoryFallback = true;
@@ -87,7 +82,6 @@ class DatabaseService {
     this.initialized = true;
     this._initializing = false;
 
-    // Crear tabla si no existe
     await new Promise((resolve, reject) => {
       this.db.transaction(
         (tx) => {
@@ -148,7 +142,6 @@ class DatabaseService {
       return nuevo;
     }
     if (!this.db) throw new Error('Database not initialized (add)');
-    // For sqlite try to use insertId; if not available, compute next id via MAX(id)
     return await new Promise((resolve, reject) => {
       this.db.transaction((tx) => {
         tx.executeSql(
@@ -161,7 +154,6 @@ class DatabaseService {
                 id = result.insertId;
               }
               if (id == null) {
-                // fallback: query max(id)
                 tx.executeSql('SELECT MAX(id) as maxId FROM usuarios', [], (_, r2) => {
                   const maxId = r2.rows._array && r2.rows._array[0] && r2.rows._array[0].maxId;
                   const next = (maxId == null) ? 1 : Number(maxId);
