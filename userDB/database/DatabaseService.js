@@ -5,84 +5,220 @@ class DatabaseService {
   constructor() {
     this.db = null;
     this.storageKey = 'usuarios';
+    this.useMemoryFallback = false;
+    this._memoryUsers = [];
+    this.initialized = false;
+    this._initializing = false;
+  }
+
+  // Ensure the DB is initialized. If not, call initialize() which creates the table.
+  async ensureDB() {
+    if (Platform.OS === 'web') return;
+    if (this.db) return;
+    if (this.initialized && !this._initializing) return;
+    try {
+      console.log('[DatabaseService] ensureDB: database not open, calling initialize()');
+      await this.initialize();
+      console.log('[DatabaseService] ensureDB: initialize() completed');
+    } catch (err) {
+      console.warn('[DatabaseService] ensureDB error:', err);
+    }
   }
 
   async initialize() {
+    if (this.initialized) return;
     if (Platform.OS === 'web') {
-      console.log('Usando LocalStorage para web');
-    } else {
-      console.log('Usando SQLite para móvil');
-      this.db = await SQLite.openDatabaseAsync('miapp.db');
-      await this.db.execAsync(`
-        CREATE TABLE IF NOT EXISTS usuarios (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          nombre TEXT NOT NULL,
-          fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
+      console.log('[DatabaseService] initialize — web (LocalStorage)');
+      this.initialized = true;
+      return;
     }
+
+    this._initializing = true;
+    console.log('[DatabaseService] initialize — sqlite');
+    // Prefer synchronous openDatabase, otherwise await async variant if available
+    try {
+      if (SQLite && typeof SQLite.openDatabase === 'function') {
+        this.db = SQLite.openDatabase('miapp.db');
+      } else if (SQLite && typeof SQLite.openDatabaseAsync === 'function') {
+        // some environments expose an async opener
+        this.db = await SQLite.openDatabaseAsync('miapp.db');
+      } else if (SQLite && SQLite.default && typeof SQLite.default.openDatabase === 'function') {
+        this.db = SQLite.default.openDatabase('miapp.db');
+      } else {
+        console.warn('[DatabaseService] sqlite openDatabase not available; falling back to in-memory storage for testing');
+        this.useMemoryFallback = true;
+        this.db = null;
+        return;
+      }
+    } catch (err) {
+      console.warn('[DatabaseService] error opening sqlite DB:', err);
+      console.warn('[DatabaseService] falling back to in-memory storage for testing');
+      this.useMemoryFallback = true;
+      this.db = null;
+      this.initialized = true;
+      this._initializing = false;
+      return;
+    }
+
+    // If opener returned a Promise (unexpected), await it
+    if (this.db && typeof this.db.then === 'function') {
+      try {
+        this.db = await this.db;
+      } catch (err) {
+        console.warn('[DatabaseService] awaiting db promise failed:', err);
+        this.useMemoryFallback = true;
+        this.db = null;
+        this.initialized = true;
+        this._initializing = false;
+        return;
+      }
+    }
+
+    // Validate the db object has transaction
+    if (!this.db || typeof this.db.transaction !== 'function') {
+      console.warn('[DatabaseService] opened db does not expose transaction. Falling back to in-memory. DB:', this.db);
+      this.useMemoryFallback = true;
+      this.db = null;
+      this.initialized = true;
+      this._initializing = false;
+      return;
+    }
+
+    this.initialized = true;
+    this._initializing = false;
+
+    // Crear tabla si no existe
+    await new Promise((resolve, reject) => {
+      this.db.transaction(
+        (tx) => {
+          tx.executeSql(
+            `CREATE TABLE IF NOT EXISTS usuarios (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              nombre TEXT NOT NULL,
+              fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP
+            );`,
+            []
+          );
+        },
+        (err) => reject(err),
+        () => resolve()
+      );
+    });
   }
 
   async getAll() {
     if (Platform.OS === 'web') {
       const data = localStorage.getItem(this.storageKey);
       return data ? JSON.parse(data) : [];
-    } else {
-      return await this.db.getAllAsync('SELECT * FROM usuarios ORDER BY id DESC');
     }
+
+    if (this.useMemoryFallback) {
+      return this._memoryUsers.slice().reverse();
+    }
+    await this.ensureDB();
+    if (!this.db) throw new Error('Database not initialized (getAll)');
+
+    return await new Promise((resolve, reject) => {
+      this.db.transaction((tx) => {
+        tx.executeSql(
+          'SELECT * FROM usuarios ORDER BY id DESC',
+          [],
+          (_, result) => resolve(result.rows._array),
+          (_, err) => reject(err)
+        );
+      }, reject);
+    });
   }
 
   async add(nombre) {
     if (Platform.OS === 'web') {
       const usuarios = await this.getAll();
-      const nuevoUsuario = {
-        id: Date.now(),
-        nombre,
-        fecha_creacion: new Date().toISOString()
-      };
+      const nuevoUsuario = { id: Date.now(), nombre, fecha_creacion: new Date().toISOString() };
       usuarios.unshift(nuevoUsuario);
       localStorage.setItem(this.storageKey, JSON.stringify(usuarios));
       return nuevoUsuario;
-    } else {
-      const result = await this.db.runAsync(
-        'INSERT INTO usuarios (nombre) VALUES(?)',
-        nombre
-      );
-      return {
-        id: result.lastInsertRowId,
-        nombre,
-        fecha_creacion: new Date().toISOString()
-      };
     }
-  }
-  async actualizarUsuario(id, nombre) {
-    try {
-      Usuario.validar(nombre);
 
-      const result = await DatabaseService.update(id, nombre.trim());
-
-      this.notifyListeners();
-      return result;
-    } catch(error){
-      console.error('Error al actualizar usuario', error);
-      throw error;
+    await this.ensureDB();
+    if (this.useMemoryFallback) {
+      const nuevo = { id: Date.now(), nombre, fecha_creacion: new Date().toISOString() };
+      this._memoryUsers.push(nuevo);
+      return nuevo;
     }
+    if (!this.db) throw new Error('Database not initialized (add)');
+
+    return await new Promise((resolve, reject) => {
+      this.db.transaction((tx) => {
+        tx.executeSql(
+          'INSERT INTO usuarios (nombre) VALUES(?)',
+          [nombre],
+          (_, result) => resolve({ id: result.insertId ?? null, nombre, fecha_creacion: new Date().toISOString() }),
+          (_, err) => reject(err)
+        );
+      }, reject);
+    });
   }
 
-  async eliminarUsuario(id){
-    try {
-      const result = await DatabaseService.remove(id);
-
-
-      this.notifyListeners();
-
-      return result;
-    } catch (error){
-      console.error('Error al eliminar usuario: ', error)
-      throw error;
+  async update(id, nombre) {
+    if (Platform.OS === 'web') {
+      const usuarios = await this.getAll();
+      const idx = usuarios.findIndex((u) => u.id === id);
+      if (idx === -1) throw new Error('Usuario no encontrado');
+      usuarios[idx].nombre = nombre;
+      localStorage.setItem(this.storageKey, JSON.stringify(usuarios));
+      return { id, nombre, fecha_creacion: usuarios[idx].fecha_creacion };
     }
+
+    await this.ensureDB();
+    if (this.useMemoryFallback) {
+      const idx = this._memoryUsers.findIndex(u => u.id === id);
+      if (idx === -1) throw new Error('Usuario no encontrado');
+      this._memoryUsers[idx].nombre = nombre;
+      return { id, nombre, fecha_creacion: this._memoryUsers[idx].fecha_creacion };
+    }
+    if (!this.db) throw new Error('Database not initialized (update)');
+
+    return await new Promise((resolve, reject) => {
+      this.db.transaction((tx) => {
+        tx.executeSql(
+          'UPDATE usuarios SET nombre = ? WHERE id = ?',
+          [nombre, id],
+          (_, result) => {
+            if (result.rowsAffected && result.rowsAffected > 0) resolve({ id, nombre });
+            else reject(new Error('No se pudo actualizar el usuario'));
+          },
+          (_, err) => reject(err)
+        );
+      }, reject);
+    });
+  }
+
+  async remove(id) {
+    if (Platform.OS === 'web') {
+      const usuarios = await this.getAll();
+      const newUsers = usuarios.filter((u) => u.id !== id);
+      localStorage.setItem(this.storageKey, JSON.stringify(newUsers));
+      return true;
+    }
+
+    await this.ensureDB();
+    if (this.useMemoryFallback) {
+      this._memoryUsers = this._memoryUsers.filter(u => u.id !== id);
+      return true;
+    }
+    if (!this.db) throw new Error('Database not initialized (remove)');
+
+    return await new Promise((resolve, reject) => {
+      this.db.transaction((tx) => {
+        tx.executeSql(
+          'DELETE FROM usuarios WHERE id = ?',
+          [id],
+          (_, result) => resolve(result.rowsAffected > 0),
+          (_, err) => reject(err)
+        );
+      }, reject);
+    });
   }
 }
 
-// Exportar instancia de la clase
 export default new DatabaseService();

@@ -6,7 +6,31 @@ export class UsuarioController {
     this.listeners = [];
   }
   async initialize() {
+    console.log('[UsuarioController] initialize - DatabaseService:', typeof DatabaseService);
     await DatabaseService.initialize();
+  }
+
+  async actualizarUsuario(id, nombre) {
+    try {
+      Usuario.validar(nombre);
+      const result = await DatabaseService.update(id, nombre.trim());
+      this.notifyListeners();
+      return result;
+    } catch (error) {
+      console.error('Error al actualizar usuario:', error);
+      throw error;
+    }
+  }
+
+  async eliminarUsuario(id) {
+    try {
+      const result = await DatabaseService.remove(id);
+      this.notifyListeners();
+      return result;
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+      throw error;
+    }
   }
 
   
@@ -23,10 +47,9 @@ export class UsuarioController {
 
   async crearUsuario(nombre) {
     try {
-      
+      console.log('[UsuarioController] crearUsuario - DatabaseService:', typeof DatabaseService, DatabaseService ? Object.keys(DatabaseService) : DatabaseService);
       Usuario.validar(nombre);
 
-     
       const nuevoUsuario = await DatabaseService.add(nombre.trim());
       this.notifyListeners();
 

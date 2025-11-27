@@ -11,7 +11,7 @@ export default function UsuarioView() {
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [currentUserId, serCurrentUserId] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
   
   const cargarUsuarios = useCallback(async () => {
     try {
@@ -108,7 +108,7 @@ export default function UsuarioView() {
       <View style={styles.userInfo}>
         <Text style={styles.userName}>{item.nombre}</Text>
         <Text style={styles.userId}>ID: {item.id}</Text>
-        <Text style={styles.userData}>
+        <Text style={styles.userDate}>
           {new Date(item.fechaCreacion).toLocaleDateString('es-MX', {
             year: 'numeric',
             month: 'long',
